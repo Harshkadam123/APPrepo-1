@@ -1,0 +1,181 @@
+text,intent
+"remind me to study",CREATE_REMINDER
+"set a reminder for later",CREATE_REMINDER
+"create a reminder",CREATE_REMINDER
+"make a reminder",CREATE_REMINDER
+"remind me about my exam",CREATE_REMINDER
+"set a task for tomorrow",CREATE_REMINDER
+"remind me in ten minutes",CREATE_REMINDER
+"remind me in two hours",CREATE_REMINDER
+"dont let me forget my project",CREATE_REMINDER
+"schedule a reminder",CREATE_REMINDER
+"create a task for tonight",CREATE_REMINDER
+"remind me to exercise",CREATE_REMINDER
+"set a task to call mom",CREATE_REMINDER
+"remind me tomorrow morning",CREATE_REMINDER
+"make me remember to study pandas",CREATE_REMINDER
+"open youtube",OPEN_APP
+"launch youtube",OPEN_APP
+"start whatsapp",OPEN_APP
+"open the browser",OPEN_APP
+"launch chrome",OPEN_APP
+"open telegram",OPEN_APP
+"start spotify",OPEN_APP
+"run instagram",OPEN_APP
+"open my calculator",OPEN_APP
+"launch maps",OPEN_APP
+"start gmail",OPEN_APP
+"open facebook",OPEN_APP
+"open the camera",OPEN_APP
+"launch the music app",OPEN_APP
+"start the browser",OPEN_APP
+"remember my project is jarvis",SAVE_MEMORY
+"remember that i study ai ml",SAVE_MEMORY
+"save this in memory",SAVE_MEMORY
+"store this memory",SAVE_MEMORY
+"remember this preference",SAVE_MEMORY
+"keep this in memory",SAVE_MEMORY
+"remember my favorite project",SAVE_MEMORY
+"save my note",SAVE_MEMORY
+"remember my study goal",SAVE_MEMORY
+"store my project name",SAVE_MEMORY
+"remember that i use python",SAVE_MEMORY
+"save this information",SAVE_MEMORY
+"remember this fact",SAVE_MEMORY
+"keep this note",SAVE_MEMORY
+"add this to memory",SAVE_MEMORY
+"what do you remember",SEARCH_MEMORY
+"what did i tell you",SEARCH_MEMORY
+"recall my memories",SEARCH_MEMORY
+"search my memory",SEARCH_MEMORY
+"show my memories",SEARCH_MEMORY
+"what do you remember about my project",SEARCH_MEMORY
+"find my saved memory",SEARCH_MEMORY
+"do you remember my project",SEARCH_MEMORY
+"recall what i told you",SEARCH_MEMORY
+"look in memory",SEARCH_MEMORY
+"what did i save",SEARCH_MEMORY
+"search memories for python",SEARCH_MEMORY
+"tell me my saved notes",SEARCH_MEMORY
+"find what you remember",SEARCH_MEMORY
+"retrieve my memory",SEARCH_MEMORY
+"show my tasks",SHOW_TASKS
+"list my tasks",SHOW_TASKS
+"what are my reminders",SHOW_TASKS
+"display my to dos",SHOW_TASKS
+"what do i have to do",SHOW_TASKS
+"show active tasks",SHOW_TASKS
+"list reminders",SHOW_TASKS
+"show my todo list",SHOW_TASKS
+"display my tasks",SHOW_TASKS
+"what tasks are pending",SHOW_TASKS
+"show pending reminders",SHOW_TASKS
+"tell me my tasks",SHOW_TASKS
+"what is on my task list",SHOW_TASKS
+"list my reminders",SHOW_TASKS
+"show all active tasks",SHOW_TASKS
+"delete my task",DELETE_TASK
+"remove the reminder",DELETE_TASK
+"delete the study task",DELETE_TASK
+"remove my todo",DELETE_TASK
+"delete task study",DELETE_TASK
+"delete my reminder",DELETE_TASK
+"remove the task",DELETE_TASK
+"delete the latest task",DELETE_TASK
+"remove my latest reminder",DELETE_TASK
+"delete this todo",DELETE_TASK
+"erase my task",DELETE_TASK
+"remove a reminder",DELETE_TASK
+"delete the project task",DELETE_TASK
+"cancel the study reminder",DELETE_TASK
+"remove the pending task",DELETE_TASK
+"yes",CONFIRM_ACTION
+"yes do it",CONFIRM_ACTION
+"confirm",CONFIRM_ACTION
+"confirmed",CONFIRM_ACTION
+"go ahead",CONFIRM_ACTION
+"okay do it",CONFIRM_ACTION
+"sure",CONFIRM_ACTION
+"please proceed",CONFIRM_ACTION
+"that is correct",CONFIRM_ACTION
+"approve it",CONFIRM_ACTION
+"send it",CONFIRM_ACTION
+"continue",CONFIRM_ACTION
+"do that",CONFIRM_ACTION
+"yes confirm",CONFIRM_ACTION
+"proceed",CONFIRM_ACTION
+"no",CANCEL_ACTION
+"cancel",CANCEL_ACTION
+"stop",CANCEL_ACTION
+"do not do it",CANCEL_ACTION
+"never mind",CANCEL_ACTION
+"cancel it",CANCEL_ACTION
+"no thanks",CANCEL_ACTION
+"dont do that",CANCEL_ACTION
+"abort",CANCEL_ACTION
+"forget it",CANCEL_ACTION
+"stop the action",CANCEL_ACTION
+"reject it",CANCEL_ACTION
+"do not proceed",CANCEL_ACTION
+"no cancel",CANCEL_ACTION
+"leave it",CANCEL_ACTION
+"show action history",SHOW_HISTORY
+"what happened",SHOW_HISTORY
+"show recent actions",SHOW_HISTORY
+"what did you do",SHOW_HISTORY
+"recent actions",SHOW_HISTORY
+"status of my last task",SHOW_HISTORY
+"list my actions",SHOW_HISTORY
+"show what you did",SHOW_HISTORY
+"tell me recent activity",SHOW_HISTORY
+"what was the last action",SHOW_HISTORY
+"show execution history",SHOW_HISTORY
+"show my history",SHOW_HISTORY
+"what actions happened",SHOW_HISTORY
+"display recent actions",SHOW_HISTORY
+"check action history",SHOW_HISTORY
+"retry",RETRY_ACTION
+"try again",RETRY_ACTION
+"repeat the last action",RETRY_ACTION
+"do that again",RETRY_ACTION
+"retry the last action",RETRY_ACTION
+"run it again",RETRY_ACTION
+"repeat that",RETRY_ACTION
+"attempt it again",RETRY_ACTION
+"try the failed action again",RETRY_ACTION
+"retry my last request",RETRY_ACTION
+"do the previous action again",RETRY_ACTION
+"repeat the failed task",RETRY_ACTION
+"try that again",RETRY_ACTION
+"rerun the last action",RETRY_ACTION
+"retry it",RETRY_ACTION
+"help me",HELP
+"what can you do",HELP
+"show commands",HELP
+"how can you help",HELP
+"list your commands",HELP
+"what commands do you support",HELP
+"help",HELP
+"give me help",HELP
+"show available commands",HELP
+"what can jarvis do",HELP
+"tell me your capabilities",HELP
+"how do i use you",HELP
+"show me examples",HELP
+"what can i ask you",HELP
+"give me instructions",HELP
+"hello there",UNKNOWN
+"good morning",UNKNOWN
+"how is the weather",UNKNOWN
+"tell me a joke",UNKNOWN
+"who are you",UNKNOWN
+"what is ai",UNKNOWN
+"how are you",UNKNOWN
+"nice to meet you",UNKNOWN
+"sing a song",UNKNOWN
+"what time is it",UNKNOWN
+"tell me something interesting",UNKNOWN
+"who made you",UNKNOWN
+"good evening",UNKNOWN
+"thanks",UNKNOWN
+"bye",UNKNOWN

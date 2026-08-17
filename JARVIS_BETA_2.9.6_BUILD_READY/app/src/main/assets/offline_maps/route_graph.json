@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "nodes": [
+    {
+      "id": "a",
+      "lat": 23.0225,
+      "lon": 72.5714
+    },
+    {
+      "id": "b",
+      "lat": 23.023,
+      "lon": 72.572
+    },
+    {
+      "id": "c",
+      "lat": 23.0235,
+      "lon": 72.5716
+    }
+  ],
+  "edges": [
+    {
+      "from": "a",
+      "to": "b",
+      "meters": 80,
+      "bidirectional": true,
+      "name": "Main Road"
+    },
+    {
+      "from": "b",
+      "to": "c",
+      "meters": 65,
+      "bidirectional": true,
+      "name": "Office Lane"
+    }
+  ],
+  "source": "JARVIS demo graph \u2014 replace with a legally obtained city/office routing graph"
+}
