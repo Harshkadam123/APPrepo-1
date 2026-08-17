@@ -14,38 +14,13 @@ jobs:
     name: Build Debug APK
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: JARVIS_BETA_2.9.6_BUILD_READY
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Inspect repository structure
-        run: |
-          echo "=== CURRENT DIRECTORY ==="
-          pwd
-
-          echo "=== ROOT CONTENTS ==="
-          ls -la
-
-          echo "=== SEARCHING FOR GRADLE WRAPPER ==="
-          find . -name "gradlew" -type f -print
-
-          echo "=== SEARCHING FOR SETTINGS FILE ==="
-          find . -name "settings.gradle*" -type f -print
-
-          echo "=== SEARCHING FOR APP MODULE ==="
-          find . -maxdepth 4 -type d -name "app" -print
-
-      - name: Stop if Gradle wrapper is missing
-        run: |
-          GRADLEW=$(find . -name "gradlew" -type f -print -quit)
-
-          if [ -z "$GRADLEW" ]; then
-            echo "ERROR: gradlew was not found anywhere in the repository."
-            exit 1
-          fi
-
-          echo "Found Gradle wrapper:"
-          echo "$GRADLEW"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -53,16 +28,39 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: gradle
+          cache-dependency-path: JARVIS_BETA_2.9.6_BUILD_READY/gradle/wrapper/gradle-wrapper.properties
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Make Gradle executable
+      - name: Install Android SDK packages
         run: |
-          GRADLEW=$(find . -name "gradlew" -type f -print -quit)
-          chmod +x "$GRADLEW"
+          sdkmanager "platform-tools" \
+                     "platforms;android-35" \
+                     "build-tools;35.0.0"
 
-      - name: Show Gradle version
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+
+      - name: Verify Java
+        run: java -version
+
+      - name: Verify Gradle
+        run: ./gradlew --version
+
+      - name: Clean project
+        run: ./gradlew clean --stacktrace
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --stacktrace --info
+
+      - name: Find generated APK
         run: |
-          GRADLEW=$(find . -name "gradlew" -type f -print -quit)
-          "$GRADLEW" --version
+          find app/build/outputs/apk -type f -name "*.apk" -print
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: JARVIS-BETA-2.9.6-debug-apk
+          path: JARVIS_BETA_2.9.6_BUILD_READY/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
