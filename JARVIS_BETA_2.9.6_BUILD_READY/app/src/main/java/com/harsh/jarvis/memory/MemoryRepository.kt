@@ -9,15 +9,11 @@ class MemoryRepository(
         val clean = text.trim()
         if (clean.isBlank()) return null
 
-        val id = dao.insert(
+        val id: Long = dao.insert(
             Memory(text = clean)
         )
 
-        return if (dao.findById(id) != null) {
-            id
-        } else {
-            null
-        }
+        return if (dao.findById(id) != null) id else null
     }
 
     suspend fun findById(id: Long): Memory? {
@@ -37,10 +33,15 @@ class MemoryRepository(
             return latest()
         }
 
-        val all = dao.all()
-        val normalizedQuery = normalize(clean)
+        val all: List<Memory> = dao.all()
 
-        val exact = all.filter { memory ->
+        if (all.isEmpty()) {
+            return emptyList()
+        }
+
+        val normalizedQuery: String = normalize(clean)
+
+        val exact: List<Memory> = all.filter { memory ->
             normalize(memory.text).contains(normalizedQuery)
         }
 
@@ -48,69 +49,91 @@ class MemoryRepository(
             return exact.take(5)
         }
 
-        val queryTokens = tokens(normalizedQuery)
+        val queryTokens: Set<String> = tokens(normalizedQuery)
 
         if (queryTokens.isEmpty()) {
             return emptyList()
         }
 
-        val ranked: List<Pair<Memory, Int>> = all.map { memory ->
-            val memoryTokens = tokens(normalize(memory.text))
+        val ranked = all.map { memory ->
 
-            val overlap = queryTokens.sumOf { token ->
+            val memoryTokens: Set<String> =
+                tokens(normalize(memory.text))
+
+            var overlap: Int = 0
+
+            for (token in queryTokens) {
                 when {
-                    token in memoryTokens -> 3
+                    token in memoryTokens -> {
+                        overlap += 3
+                    }
 
                     memoryTokens.any { memoryToken ->
                         memoryToken.startsWith(token) ||
                             token.startsWith(memoryToken)
-                    } -> 2
+                    } -> {
+                        overlap += 2
+                    }
 
                     SYNONYMS[token].orEmpty().any { synonym ->
                         synonym in memoryTokens
-                    } -> 2
-
-                    else -> 0
+                    } -> {
+                        overlap += 2
+                    }
                 }
             }
 
-            val coverage = queryTokens.count { token ->
-                token in memoryTokens ||
-                    memoryTokens.any { memoryToken ->
-                        memoryToken.startsWith(token) ||
-                            token.startsWith(memoryToken)
-                    } ||
-                    SYNONYMS[token].orEmpty().any { synonym ->
-                        synonym in memoryTokens
-                    }
+            var coverage: Int = 0
+
+            for (token in queryTokens) {
+                val matched =
+                    token in memoryTokens ||
+                        memoryTokens.any { memoryToken ->
+                            memoryToken.startsWith(token) ||
+                                token.startsWith(memoryToken)
+                        } ||
+                        SYNONYMS[token].orEmpty().any { synonym ->
+                            synonym in memoryTokens
+                        }
+
+                if (matched) {
+                    coverage += 1
+                }
             }
 
-            val phraseBonus =
-                if (
-                    queryTokens.size > 1 &&
-                    queryTokens.all { token ->
+            var phraseBonus: Int = 0
+
+            if (queryTokens.size > 1) {
+                var allMatched = true
+
+                for (token in queryTokens) {
+                    val matched =
                         token in memoryTokens ||
                             SYNONYMS[token].orEmpty().any { synonym ->
                                 synonym in memoryTokens
                             }
+
+                    if (!matched) {
+                        allMatched = false
+                        break
                     }
-                ) {
-                    3
-                } else {
-                    0
                 }
 
-            val recencyBonus =
-                if (
-                    System.currentTimeMillis() - memory.createdAt <
-                    7L * 24L * 60L * 60L * 1000L
-                ) {
-                    1
-                } else {
-                    0
+                if (allMatched) {
+                    phraseBonus = 3
                 }
+            }
 
-            val score =
+            val age: Long =
+                System.currentTimeMillis() - memory.createdAt
+
+            val sevenDays: Long =
+                7L * 24L * 60L * 60L * 1000L
+
+            val recencyBonus: Int =
+                if (age < sevenDays) 1 else 0
+
+            val score: Int =
                 overlap +
                     coverage +
                     phraseBonus +
@@ -148,14 +171,15 @@ class MemoryRepository(
         return normalize(value)
             .split(" ")
             .filter { token ->
-                token.length > 2 && token !in STOPWORDS
+                token.length > 2 &&
+                    token !in STOPWORDS
             }
             .toSet()
     }
 
     companion object {
 
-        private val SYNONYMS = mapOf(
+        private val SYNONYMS: Map<String, Set<String>> = mapOf(
             "project" to setOf(
                 "app",
                 "assistant",
@@ -191,7 +215,7 @@ class MemoryRepository(
             )
         )
 
-        private val STOPWORDS = setOf(
+        private val STOPWORDS: Set<String> = setOf(
             "the",
             "and",
             "that",
