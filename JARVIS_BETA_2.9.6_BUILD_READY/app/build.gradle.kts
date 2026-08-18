@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "com.harsh.jarvis"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.harsh.jarvis"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 296
         versionName = "2.9.6"
     }
@@ -42,12 +42,14 @@ android {
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.12.01")
+
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
-    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.documentfile:documentfile:1.0.1")
     implementation("androidx.activity:activity-compose:1.10.0")
+
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
@@ -59,18 +61,22 @@ dependencies {
 
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
+
     androidTestImplementation("androidx.room:room-testing:2.6.1")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test:core:1.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
+
     implementation("androidx.work:work-runtime-ktx:2.10.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+
     // Local GGUF inference: Qwen3-1.7B runs fully on-device through llama.cpp.
     implementation("org.codeshipping:llama-kotlin-android:0.1.7")
+
     // Offline-first map rendering with cached/local tiles.
     implementation("org.osmdroid:osmdroid-android:6.1.20")
 
-    // Local JVM unit tests. Android instrumentation tests use the dependencies above.
+    // Local JVM unit tests.
     testImplementation("junit:junit:4.13.2")
 }
