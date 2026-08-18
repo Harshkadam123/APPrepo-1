@@ -31,36 +31,53 @@ object DailyPlanner {
         maxHours: Int = 16
     ): List<PlanItem> {
 
-        val endOfDay = now
-            .toLocalDate()
-            .plusDays(1)
-            .atStartOfDay()
+        val endOfDay =
+            now.toLocalDate()
+                .plusDays(1)
+                .atStartOfDay()
+
+        val nowEpoch: Long =
+            now.atZone(zone)
+                .toInstant()
+                .toEpochMilli()
 
         val busy: List<Pair<LocalDateTime, LocalDateTime>> =
             schedule
                 .filter { block ->
-                    block.endTime > now.toInstant(zone).toEpochMilli()
+                    block.endTime > nowEpoch
                 }
-                .sortedBy { it.startTime }
+                .sortedBy { block ->
+                    block.startTime
+                }
                 .map { block ->
-                    Instant.ofEpochMilli(block.startTime)
-                        .atZone(zone)
-                        .toLocalDateTime() to
+
+                    val start =
+                        Instant.ofEpochMilli(block.startTime)
+                            .atZone(zone)
+                            .toLocalDateTime()
+
+                    val end =
                         Instant.ofEpochMilli(block.endTime)
                             .atZone(zone)
                             .toLocalDateTime()
+
+                    Pair(start, end)
                 }
 
-        val dayBit = 1 shl (now.dayOfWeek.value - 1)
+        val dayBit: Int =
+            1 shl (now.dayOfWeek.value - 1)
 
-        val protected: List<Pair<Int, Int>> =
+        val protectedRanges: List<Pair<Int, Int>> =
             quiet
                 .filter { rule ->
                     rule.enabled &&
                         (rule.daysMask and dayBit) != 0
                 }
                 .map { rule ->
-                    rule.startMinute to rule.endMinute
+                    Pair(
+                        rule.startMinute,
+                        rule.endMinute
+                    )
                 }
 
         val candidates: List<Task> =
@@ -78,9 +95,11 @@ object DailyPlanner {
 
         val result = mutableListOf<PlanItem>()
 
-        var cursor = now
-        var plannedMinutes = 0
-        val maximumMinutes = max(1, maxHours) * 60
+        var cursor: LocalDateTime = now
+        var plannedMinutes: Int = 0
+
+        val maximumMinutes: Int =
+            max(1, maxHours) * 60
 
         for (task in candidates) {
 
@@ -88,52 +107,71 @@ object DailyPlanner {
                 break
             }
 
-            val requestedDuration = max(
-                15,
-                task.estimatedMinutes
-            )
+            val requestedDuration: Int =
+                max(
+                    15,
+                    task.estimatedMinutes
+                )
 
-            val remainingMinutes =
+            val remainingMinutes: Int =
                 maximumMinutes - plannedMinutes
 
-            val duration =
-                minOf(requestedDuration, remainingMinutes)
+            val duration: Int =
+                minOf(
+                    requestedDuration,
+                    remainingMinutes
+                )
 
-            val slot = nextFreeSlot(
-                cursor0 = cursor,
-                minutes = duration,
-                busy = busy,
-                protected = protected,
-                end = endOfDay
-            ) ?: break
+            val slot: LocalDateTime? =
+                nextFreeSlot(
+                    cursor0 = cursor,
+                    minutes = duration,
+                    busy = busy,
+                    protected = protectedRanges,
+                    end = endOfDay
+                )
 
-            val finish = slot.plusMinutes(
-                duration.toLong()
-            )
-
-            val finishEpoch =
-                finish.toInstant(zone).toEpochMilli()
-
-            val reason = when {
-                task.dueTime != null &&
-                    task.dueTime <= finishEpoch ->
-                    "deadline proximity"
-
-                task.goalPriority >= 0.75 ->
-                    "user goal priority"
-
-                task.consequence >= 0.75 ->
-                    "high consequence of delay"
-
-                else ->
-                    "highest current value"
+            if (slot == null) {
+                break
             }
 
-            result += PlanItem(
-                title = task.title,
-                start = slot,
-                end = finish,
-                reason = reason
+            val finish: LocalDateTime =
+                slot.plusMinutes(
+                    duration.toLong()
+                )
+
+            val finishEpoch: Long =
+                finish.atZone(zone)
+                    .toInstant()
+                    .toEpochMilli()
+
+            val reason: String =
+                when {
+                    task.dueTime != null &&
+                        task.dueTime <= finishEpoch -> {
+                        "deadline proximity"
+                    }
+
+                    task.goalPriority >= 0.75 -> {
+                        "user goal priority"
+                    }
+
+                    task.consequence >= 0.75 -> {
+                        "high consequence of delay"
+                    }
+
+                    else -> {
+                        "highest current value"
+                    }
+                }
+
+            result.add(
+                PlanItem(
+                    title = task.title,
+                    start = slot,
+                    end = finish,
+                    reason = reason
+                )
             )
 
             plannedMinutes += duration
@@ -145,12 +183,16 @@ object DailyPlanner {
 
     private fun priority(task: Task): Double {
 
-        val deadline =
-            task.dueTime?.let { due ->
-                PriorityEngine.deadlineFactor(due)
-            } ?: 0.15
+        val deadlineFactor: Double =
+            if (task.dueTime != null) {
+                PriorityEngine.deadlineFactor(
+                    task.dueTime
+                )
+            } else {
+                0.15
+            }
 
-        val completion =
+        val completion: Double =
             (
                 100 -
                     task.completionPercent.coerceIn(
@@ -159,31 +201,45 @@ object DailyPlanner {
                     )
                 ) / 100.0
 
-        val importance =
+        val importance: Double =
             when {
-                task.priority.equals("URGENT", ignoreCase = true) ->
+                task.priority.equals(
+                    "URGENT",
+                    ignoreCase = true
+                ) -> {
                     1.0
+                }
 
-                task.priority.equals("HIGH", ignoreCase = true) ->
+                task.priority.equals(
+                    "HIGH",
+                    ignoreCase = true
+                ) -> {
                     0.9
+                }
 
-                task.priority.equals("LOW", ignoreCase = true) ->
+                task.priority.equals(
+                    "LOW",
+                    ignoreCase = true
+                ) -> {
                     0.25
+                }
 
-                else ->
+                else -> {
                     0.55
+                }
             }
 
         return PriorityEngine.score(
             importance = importance,
             urgency = if (task.dueTime != null) 0.8 else 0.35,
-            deadlineProximity = deadline,
+            deadlineProximity = deadlineFactor,
             relevance = task.goalPriority,
             consequence = task.consequence,
             feedbackPenalty = 0.0
         ) * (
-            0.65 + 0.35 * completion
-        )
+            0.65 +
+                0.35 * completion
+            )
     }
 
     private fun nextFreeSlot(
@@ -194,18 +250,20 @@ object DailyPlanner {
         end: LocalDateTime
     ): LocalDateTime? {
 
-        var cursor = cursor0
+        var cursor: LocalDateTime = cursor0
 
-        repeat(64) {
+        repeat(128) {
 
             if (cursor >= end) {
                 return null
             }
 
-            val minuteOfDay =
-                cursor.hour * 60 + cursor.minute
+            val minuteOfDay: Int =
+                cursor.hour * 60 +
+                    cursor.minute
 
-            val protectedHit =
+            val protectedHit:
+                Pair<Int, Int>? =
                 protected.firstOrNull { range ->
                     contains(
                         start = range.first,
@@ -216,10 +274,14 @@ object DailyPlanner {
 
             if (protectedHit != null) {
 
-                val protectedEnd = protectedHit.second
+                val start: Int =
+                    protectedHit.first
+
+                val protectedEnd: Int =
+                    protectedHit.second
 
                 cursor =
-                    if (protectedHit.first <= protectedEnd) {
+                    if (start <= protectedEnd) {
                         cursor
                             .toLocalDate()
                             .atStartOfDay()
@@ -236,12 +298,13 @@ object DailyPlanner {
                 return@repeat
             }
 
-            val finish =
+            val finish: LocalDateTime =
                 cursor.plusMinutes(
                     minutes.toLong()
                 )
 
-            val conflict =
+            val conflict:
+                Pair<LocalDateTime, LocalDateTime>? =
                 busy.firstOrNull { block ->
                     cursor < block.second &&
                         finish > block.first
@@ -271,7 +334,8 @@ object DailyPlanner {
         return if (start <= end) {
             minute in start until end
         } else {
-            minute >= start || minute < end
+            minute >= start ||
+                minute < end
         }
     }
 }
