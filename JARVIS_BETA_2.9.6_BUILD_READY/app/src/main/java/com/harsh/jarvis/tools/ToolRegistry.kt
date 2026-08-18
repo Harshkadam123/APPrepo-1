@@ -167,7 +167,8 @@ class ToolRegistry(
      * Rebuilds an action from stable structured payload persisted in history.
      * Retry never parses the original English request.
      */
-    fun rebuildAction(name: String, payload: Map<String, String>): JarvisAction? = when (name) {
+    fun rebuildAction(name: String, payload: Map<String, String>): JarvisAction? {
+        return when (name) {
         "create_reminder" -> {
             val title = payload["title"]?.takeIf { it.isNotBlank() } ?: return null
             val due = payload["dueTime"]?.takeIf { it.isNotBlank() }?.toLongOrNull()
@@ -218,6 +219,7 @@ class ToolRegistry(
             )
         }
         else -> null
+        }
     }
 
     suspend fun showTasks(): String {
