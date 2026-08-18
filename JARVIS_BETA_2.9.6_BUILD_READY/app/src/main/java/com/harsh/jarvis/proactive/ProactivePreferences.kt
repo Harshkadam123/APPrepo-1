@@ -4,12 +4,40 @@ import android.content.Context
 import java.time.LocalDate
 
 class ProactivePreferences(context: Context) {
-    private val prefs = context.getSharedPreferences("jarvis_proactive_preferences", Context.MODE_PRIVATE)
-    var morningEnabled: Boolean get() = prefs.getBoolean("morning", true) set(v) { prefs.edit().putBoolean("morning", v).apply() }
-    var eveningEnabled: Boolean get() = prefs.getBoolean("evening", true) set(v) { prefs.edit().putBoolean("evening", v).apply() }
+
+    private val prefs = context.getSharedPreferences(
+        "jarvis_proactive_preferences",
+        Context.MODE_PRIVATE
+    )
+
+    var morningEnabled: Boolean
+        get() = prefs.getBoolean("morning", true)
+        set(value: Boolean) {
+            prefs.edit()
+                .putBoolean("morning", value)
+                .apply()
+        }
+
+    var eveningEnabled: Boolean
+        get() = prefs.getBoolean("evening", true)
+        set(value: Boolean) {
+            prefs.edit()
+                .putBoolean("evening", value)
+                .apply()
+        }
+
     fun shouldRun(key: String): Boolean {
-        val today = LocalDate.now().toString()
-        return prefs.getString("last_$key", null) != today
+        val today: String = LocalDate.now().toString()
+        val lastRun: String? = prefs.getString("last_$key", null)
+
+        return lastRun != today
     }
-    fun markRun(key: String) { prefs.edit().putString("last_$key", LocalDate.now().toString()).apply() }
+
+    fun markRun(key: String) {
+        val today: String = LocalDate.now().toString()
+
+        prefs.edit()
+            .putString("last_$key", today)
+            .apply()
+    }
 }
