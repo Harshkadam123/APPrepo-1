@@ -1,0 +1,21 @@
+# JARVIS 2.9.6 — Comprehensive Runtime Hardening
+
+- VersionCode 296 / versionName 2.9.6.
+- Qwen3 minimum available-RAM floor remains 5 GB by request.
+- Serialized Qwen native generation and safer manager shutdown.
+- GGUF magic validation uses a complete 4-byte read.
+- Storage/SAF resource discovery is bounded and persisted permissions fall back safely to read-only.
+- Offline map import and route-graph import run on IO dispatchers.
+- Route-graph loading runs off the UI thread; A* routing runs on Default.
+- Map-pack storage accounting/pruning runs off the UI thread and is cached in the UI.
+- MyLocation overlay is only enabled after runtime location permission is granted.
+- Notification permission/availability is respected by all notification receivers.
+- Full-screen task alarms use Android 14+ capability checks and safely fall back to normal notification taps.
+- Exact alarm permission, reboot, time changes and timezone changes trigger scheduling restoration.
+- Future task alarms and active focus alarms are reconstructed after relevant system events.
+- Contact lookup now requires a single unambiguous matching contact.
+- Corrected blocked-data error wording.
+- Removed the unused foreground-service permission.
+- Assistant prevents duplicate simultaneous sends and displays working state.
+- The Qwen model remains external to the APK.
+- No GitHub workflow was added.

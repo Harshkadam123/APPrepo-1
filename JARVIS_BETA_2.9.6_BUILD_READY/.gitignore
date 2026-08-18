@@ -1,0 +1,24 @@
+# Gradle / Android
+.gradle/
+**/build/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Local model/data files - NEVER commit user GGUFs or private runtime data
+*.gguf
+*.gguf.part
+*.bin
+*.safetensors
+models/
+
+# Local generated databases / exports
+*.db
+*.db-shm
+*.db-wal
