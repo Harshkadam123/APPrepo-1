@@ -91,6 +91,8 @@ fun JarvisApp(vm: JarvisViewModel = viewModel()) {
     var pending by remember { mutableStateOf<String?>(null) }
     var apps by remember { mutableStateOf(tools.availableApps()) }
 
+    lateinit var processCommand: (String) -> Unit
+
     fun startSpeech() {
         if (privacy.isBlocked(PrivacyCapability.MICROPHONE)) {
             response = "Microphone access is blocked by your Privacy policy."
@@ -101,7 +103,7 @@ fun JarvisApp(vm: JarvisViewModel = viewModel()) {
         }
         listening = true
         speech.startListening(
-            onResult = { listening = false; text = it; process(it) },
+            onResult = { listening = false; text = it; processCommand(it) },
             onError = { listening = false; response = it }
         )
     }
@@ -158,8 +160,8 @@ fun JarvisApp(vm: JarvisViewModel = viewModel()) {
 
     DisposableEffect(Unit) { onDispose { speech.destroy(); tts.destroy() } }
 
-    fun process(input: String) {
-        if (input.isBlank() || processing) return
+    processCommand = process@{ input ->
+        if (input.isBlank() || processing) return@process
         val lower = input.lowercase()
         val needsContacts = lower.contains("contact") || lower.contains("phone number") || lower.contains("call ") || lower.contains("dial ")
         val needsCalendar = lower.contains("calendar") || lower.contains("schedule") || lower.contains("appointment")
