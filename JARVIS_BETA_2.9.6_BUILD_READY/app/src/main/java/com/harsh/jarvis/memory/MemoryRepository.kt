@@ -1,69 +1,216 @@
 package com.harsh.jarvis.memory
 
 /** Lightweight semantic-ish retrieval: exact phrase first, then token-overlap ranking. */
-class MemoryRepository(private val dao: MemoryDao) {
+class MemoryRepository(
+    private val dao: MemoryDao
+) {
+
     suspend fun save(text: String): Long? {
         val clean = text.trim()
         if (clean.isBlank()) return null
-        val id = dao.insert(Memory(text = clean))
-        return if (dao.findById(id) != null) id else null
+
+        val id = dao.insert(
+            Memory(text = clean)
+        )
+
+        return if (dao.findById(id) != null) {
+            id
+        } else {
+            null
+        }
     }
 
-    suspend fun findById(id: Long): Memory? = dao.findById(id)
+    suspend fun findById(id: Long): Memory? {
+        return dao.findById(id)
+    }
+
     fun observeAll() = dao.observeAll()
-    suspend fun latest(): List<Memory> = dao.latest()
+
+    suspend fun latest(): List<Memory> {
+        return dao.latest()
+    }
 
     suspend fun search(query: String): List<Memory> {
         val clean = query.trim()
-        if (clean.isBlank()) return latest()
+
+        if (clean.isBlank()) {
+            return latest()
+        }
+
         val all = dao.all()
         val normalizedQuery = normalize(clean)
-        val exact = all.filter { normalize(it.text).contains(normalizedQuery) }
-        if (exact.isNotEmpty()) return exact.take(5)
 
-        val q = tokens(normalizedQuery)
-        if (q.isEmpty()) return emptyList()
-        return all.map { memory ->
-            val mt = tokens(normalize(memory.text))
-            val overlap = q.sumOf { token ->
+        val exact = all.filter { memory ->
+            normalize(memory.text).contains(normalizedQuery)
+        }
+
+        if (exact.isNotEmpty()) {
+            return exact.take(5)
+        }
+
+        val queryTokens = tokens(normalizedQuery)
+
+        if (queryTokens.isEmpty()) {
+            return emptyList()
+        }
+
+        val ranked: List<Pair<Memory, Int>> = all.map { memory ->
+            val memoryTokens = tokens(normalize(memory.text))
+
+            val overlap = queryTokens.sumOf { token ->
                 when {
-                    token in mt -> 3
-                    mt.any { it.startsWith(token) || token.startsWith(it) } -> 2
-                    SYNONYMS[token].orEmpty().any { it in mt } -> 2
+                    token in memoryTokens -> 3
+
+                    memoryTokens.any { memoryToken ->
+                        memoryToken.startsWith(token) ||
+                            token.startsWith(memoryToken)
+                    } -> 2
+
+                    SYNONYMS[token].orEmpty().any { synonym ->
+                        synonym in memoryTokens
+                    } -> 2
+
                     else -> 0
                 }
             }
-            val coverage = q.count { token ->
-                token in mt || mt.any { it.startsWith(token) || token.startsWith(it) } || SYNONYMS[token].orEmpty().any { it in mt }
+
+            val coverage = queryTokens.count { token ->
+                token in memoryTokens ||
+                    memoryTokens.any { memoryToken ->
+                        memoryToken.startsWith(token) ||
+                            token.startsWith(memoryToken)
+                    } ||
+                    SYNONYMS[token].orEmpty().any { synonym ->
+                        synonym in memoryTokens
+                    }
             }
-            val phraseBonus = if (q.size > 1 && q.all { token -> token in mt || SYNONYMS[token].orEmpty().any { it in mt } }) 3 else 0
-            val recencyBonus = if (System.currentTimeMillis() - memory.createdAt < 7 * 24 * 60 * 60 * 1000L) 1 else 0
-            memory to (overlap + coverage + phraseBonus + recencyBonus)
-        }.filter { it.second > 0 }
-            .sortedWith(compareByDescending<Pair<Memory, Int>> { it.second }.thenByDescending { it.first.createdAt })
+
+            val phraseBonus =
+                if (
+                    queryTokens.size > 1 &&
+                    queryTokens.all { token ->
+                        token in memoryTokens ||
+                            SYNONYMS[token].orEmpty().any { synonym ->
+                                synonym in memoryTokens
+                            }
+                    }
+                ) {
+                    3
+                } else {
+                    0
+                }
+
+            val recencyBonus =
+                if (
+                    System.currentTimeMillis() - memory.createdAt <
+                    7L * 24L * 60L * 60L * 1000L
+                ) {
+                    1
+                } else {
+                    0
+                }
+
+            val score =
+                overlap +
+                    coverage +
+                    phraseBonus +
+                    recencyBonus
+
+            Pair(memory, score)
+        }
+
+        return ranked
+            .filter { pair ->
+                pair.second > 0
+            }
+            .sortedWith(
+                compareByDescending<Pair<Memory, Int>> { pair ->
+                    pair.second
+                }.thenByDescending { pair ->
+                    pair.first.createdAt
+                }
+            )
             .take(5)
-            .map { it.first }
+            .map { pair ->
+                pair.first
+            }
     }
 
-    private fun normalize(value: String) = value.lowercase()
-        .replace(Regex("[^a-z0-9 ]"), " ")
-        .replace(Regex("\\s+"), " ")
-        .trim()
+    private fun normalize(value: String): String {
+        return value
+            .lowercase()
+            .replace(Regex("[^a-z0-9 ]"), " ")
+            .replace(Regex("\\s+"), " ")
+            .trim()
+    }
 
-    private fun tokens(value: String): Set<String> = normalize(value).split(" ")
-        .filter { it.length > 2 && it !in STOPWORDS }
-        .toSet()
+    private fun tokens(value: String): Set<String> {
+        return normalize(value)
+            .split(" ")
+            .filter { token ->
+                token.length > 2 && token !in STOPWORDS
+            }
+            .toSet()
+    }
 
     companion object {
+
         private val SYNONYMS = mapOf(
-            "project" to setOf("app", "assistant", "application"),
-            "projects" to setOf("app", "assistant", "application"),
-            "app" to setOf("project", "application"),
-            "study" to setOf("learn", "learning", "practice"),
-            "learn" to setOf("study", "learning", "practice"),
-            "ai" to setOf("artificial", "intelligence", "assistant"),
-            "assistant" to setOf("ai", "jarvis")
+            "project" to setOf(
+                "app",
+                "assistant",
+                "application"
+            ),
+            "projects" to setOf(
+                "app",
+                "assistant",
+                "application"
+            ),
+            "app" to setOf(
+                "project",
+                "application"
+            ),
+            "study" to setOf(
+                "learn",
+                "learning",
+                "practice"
+            ),
+            "learn" to setOf(
+                "study",
+                "learning",
+                "practice"
+            ),
+            "ai" to setOf(
+                "artificial",
+                "intelligence",
+                "assistant"
+            ),
+            "assistant" to setOf(
+                "ai",
+                "jarvis"
+            )
         )
-        private val STOPWORDS = setOf("the", "and", "that", "this", "about", "what", "which", "with", "for", "from", "you", "your", "my", "are", "was", "were", "how", "did", "do")
+
+        private val STOPWORDS = setOf(
+            "the",
+            "and",
+            "that",
+            "this",
+            "about",
+            "what",
+            "which",
+            "with",
+            "for",
+            "from",
+            "you",
+            "your",
+            "my",
+            "are",
+            "was",
+            "were",
+            "how",
+            "did",
+            "do"
+        )
     }
 }
