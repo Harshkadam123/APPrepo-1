@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">JARVIS</string>
+
+    <string name="focus_accessibility_service_description">JARVIS Focus uses only the foreground app and browser address-bar information for local focus and adult-site protection. JARVIS does not transmit this information off-device.</string>
+
+</resources>
