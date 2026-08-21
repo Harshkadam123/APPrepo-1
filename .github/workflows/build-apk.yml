@@ -31,8 +31,8 @@ jobs:
 
       - name: Accept Android SDK licenses
         run: yes | sdkmanager --licenses || true
-
       - name: Make Gradle executable
+        working-directory: ./JARVIS_BETA_2.9.6_BUILD_READY
         run: chmod +x ./gradlew
 
       - name: Show Java version
