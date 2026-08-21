@@ -31,6 +31,17 @@ jobs:
 
       - name: Accept Android SDK licenses
         run: yes | sdkmanager --licenses || true
+
+      - name: Verify Android project
+        working-directory: ./JARVIS_BETA_2.9.6_BUILD_READY
+        run: |
+          echo "Checking Android project..."
+          test -f gradlew
+          test -f settings.gradle.kts
+          test -f build.gradle.kts
+          test -f app/build.gradle.kts
+          echo "Android project structure OK."
+
       - name: Make Gradle executable
         working-directory: ./JARVIS_BETA_2.9.6_BUILD_READY
         run: chmod +x ./gradlew
@@ -39,15 +50,19 @@ jobs:
         run: java -version
 
       - name: Show Gradle version
+        working-directory: ./JARVIS_BETA_2.9.6_BUILD_READY
         run: ./gradlew --version
 
       - name: Clean project
-        run: ./gradlew clean
+        working-directory: ./JARVIS_BETA_2.9.6_BUILD_READY
+        run: ./gradlew clean --stacktrace
 
       - name: Build Debug APK
+        working-directory: ./JARVIS_BETA_2.9.6_BUILD_READY
         run: ./gradlew assembleDebug --stacktrace
 
       - name: Find generated APK
+        working-directory: ./JARVIS_BETA_2.9.6_BUILD_READY
         run: |
           echo "Generated APK files:"
           find app/build/outputs/apk -type f -name "*.apk" -print
@@ -56,5 +71,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: JARVIS-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: JARVIS_BETA_2.9.6_BUILD_READY/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
